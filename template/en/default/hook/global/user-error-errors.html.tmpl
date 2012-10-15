@@ -1,0 +1,9 @@
+[%# Note that error messages should generally be indented four spaces, like
+  # below, because when Bugzilla translates an error message into plain
+  # text, it takes four spaces off the beginning of the lines.
+  #%]
+[% IF error == "sap_remote_not_available" %]
+    [% title = "Remote handler not available" %]
+    Currently there is no support for remote URLs of type
+    '[% url FILTER html %]
+[% END %]
