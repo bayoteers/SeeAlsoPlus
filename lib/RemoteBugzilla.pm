@@ -77,12 +77,10 @@ sub _fetch_file {
             # LWP does not handle https over proxy, so by setting the env
             # variables the proxy connection is handled by undelying library
             my $pu = URI->new($proxy_url);
-            my ($user, $pass) = split(':',
-                $pu->userinfo);
-            $ENV{HTTPS_PROXY} = $pu->scheme . '://' . $pu->host .
-                                ':' . $pu->port;
-            $ENV{HTTPS_PROXY_USERNAME} = $user;
-            $ENV{HTTPS_PROXY_PASSWORD} = $pass;
+            $ENV{HTTPS_PROXY} = $pu->scheme.'://'.$pu->host.':'.$pu->port;
+            my ($user, $pass) = split(':', $pu->userinfo || "");
+            $ENV{HTTPS_PROXY_USERNAME} = $user if defined $user;
+            $ENV{HTTPS_PROXY_PASSWORD} = $pass if defined $pass;
         }
     }
     else {
