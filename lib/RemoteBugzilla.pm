@@ -45,9 +45,9 @@ sub summary {
 sub status {
     my $self = shift;
     $self->_parse_xml unless defined $self->{data};
-    my $resolution = $self->{data}->{resolution} ?
-        " / ".$self->{data}->{resolution} : "";
-    return $self->{data}->{bug_status} . $resolution;
+    my $status = $self->{data}->{bug_status} || "---";
+    my $resolution = $self->{data}->{resolution} || "---";
+    return "$status / $resolution";
 }
 
 sub description {
