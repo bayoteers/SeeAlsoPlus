@@ -15,6 +15,13 @@ use Bugzilla::Extension::SeeAlsoPlus::Util;
 
 our $VERSION = '0.01';
 
+sub config_add_panels {
+    my ($self, $args) = @_;
+    $args->{panel_modules}->{SeeAlsoPlus} =
+            "Bugzilla::Extension::SeeAlsoPlus::Params";
+}
+
+
 sub template_before_process {
     my ($self, $args) = @_;
     if ($args->{file} eq 'global/header.html.tmpl') {

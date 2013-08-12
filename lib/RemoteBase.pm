@@ -24,6 +24,7 @@ use Bugzilla::Extension::SeeAlsoPlus::RemoteBugzilla;
 
 use Bugzilla::BugUrl;
 use Bugzilla::Constants;
+use Bugzilla::Util qw(trim);
 
 use File::Path qw(make_path);
 use Scalar::Util qw(blessed);
@@ -101,6 +102,18 @@ sub data {
     ThrowCodeError('unknown_method',
         { method => ref($self) . '::data' });
 }
+
+
+sub needs_valid_cert {
+    my ($self, $url) = @_;
+    for my $regex (split(/\n/, Bugzilla->params->{sap_invalid_cert_urls} || ''))
+    {
+        next unless trim($regex);
+        return 0 if ($url =~ /$regex/);
+    }
+    return 1;
+}
+
 
 1;
 

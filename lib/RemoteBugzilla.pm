@@ -70,8 +70,10 @@ sub data {
 }
 
 sub _fetch_file {
-    my ($url, $local_file) = @_;
+    my ($self, $local_file) = @_;
     my $ua = LWP::UserAgent->new();
+    $ua->ssl_opts(verify_hostname =>
+            $self->needs_valid_cert($self->uri->as_string));
     $ua->timeout(REMOTE_TIMEOUT);
     $ua->protocols_allowed(['http', 'https']);
 
@@ -93,7 +95,7 @@ sub _fetch_file {
     else {
         $ua->env_proxy;
     }
-    return eval { $ua->mirror($url, $local_file) };
+    return eval { $ua->mirror($self->uri->as_string, $local_file) };
 }
 
 
@@ -107,7 +109,7 @@ sub _parse_xml {
     if ($self->{no_cache} || !-e $local_file ||
             (time() - (stat($local_file))[9] > UPDATE_INTERVAL)) {
         $self->uri->query_form(id => $id, ctype => 'xml');
-        my $response = _fetch_file($self->uri->as_string, $local_file);
+        my $response = $self->_fetch_file($local_file);
         if (!-e $local_file || !$response || $response->is_error) {
             $self->error($response ? $response->status_line : 'Download failed');
             return;
