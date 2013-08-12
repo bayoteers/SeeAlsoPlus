@@ -19,6 +19,7 @@ use base qw(Bugzilla::Extension::SeeAlsoPlus::RemoteBase);
 use Bugzilla::Constants;
 
 use XML::Twig;
+use LWP::UserAgent;
 
 use constant REMOTE_TIMEOUT => 5;
 use constant UPDATE_INTERVAL => 86400;
