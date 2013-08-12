@@ -63,6 +63,12 @@ sub comments {
     return $self->{comments};
 }
 
+sub data {
+    my $self = shift;
+    $self->_parse_xml unless defined $self->{data};
+    return $self->{data};
+}
+
 sub _fetch_file {
     my ($url, $local_file) = @_;
     my $ua = LWP::UserAgent->new();

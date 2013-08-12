@@ -62,6 +62,8 @@ sub get {
         summary => $item->summary,
         description => $item->description,
         status => $item->status,
+        type => $item->type,
+        error => $item->error,
     };
     if ($raw) {
         $result->{data} = $item->data;

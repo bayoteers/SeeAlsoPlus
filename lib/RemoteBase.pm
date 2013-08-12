@@ -44,6 +44,12 @@ sub new {
 sub uri {return $_[0]->{uri}}
 sub url {return $_[0]->{url}}
 
+sub type {
+    my $self = shift;
+    my @type = split(/::/, ref($self));
+    return $type[-1];
+}
+
 sub cache_dir {
     my $self = shift;
     if (! defined $self->{cache_dir}) {
@@ -88,6 +94,12 @@ sub description {
     my $self = shift;
     ThrowCodeError('unknown_method',
         { method => ref($self) . '::description' });
+}
+
+sub data {
+    my $self = shift;
+    ThrowCodeError('unknown_method',
+        { method => ref($self) . '::data' });
 }
 
 1;

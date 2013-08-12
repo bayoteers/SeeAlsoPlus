@@ -15,6 +15,20 @@ use Bugzilla::Extension::SeeAlsoPlus::Util;
 
 our $VERSION = '0.01';
 
+sub template_before_process {
+    my ($self, $args) = @_;
+    if ($args->{file} eq 'global/header.html.tmpl') {
+        my $vars = $args->{vars};
+        if ($vars->{template}->name eq 'bug/show.html.tmpl' ||
+            $vars->{template}->name eq 'bug/process/results.html.tmpl')
+        {
+            $vars->{javascript_urls} ||= [];
+            push(@{$vars->{javascript_urls}},
+                "extensions/SeeAlsoPlus/web/js/seealsoplus.js");
+        }
+    }
+}
+
 sub webservice {
     my ($self, $args) = @_;
     $args->{dispatch}->{'SeeAlsoPlus'} =
