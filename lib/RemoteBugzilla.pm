@@ -72,8 +72,10 @@ sub data {
 sub _fetch_file {
     my ($self, $local_file) = @_;
     my $ua = LWP::UserAgent->new();
-    $ua->ssl_opts(verify_hostname =>
+    if ($ua->can('ssl_opts')) {
+        $ua->ssl_opts(verify_hostname =>
             $self->needs_valid_cert($self->uri->as_string));
+    }
     $ua->timeout(REMOTE_TIMEOUT);
     $ua->protocols_allowed(['http', 'https']);
 
