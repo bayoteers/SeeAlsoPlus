@@ -15,9 +15,6 @@ use strict;
 
 use base qw(Bugzilla::Extension::SeeAlsoPlus::RemoteBase);
 
-
-use Bugzilla::Constants;
-
 use XML::Twig;
 use LWP::UserAgent;
 

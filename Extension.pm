@@ -11,7 +11,10 @@ package Bugzilla::Extension::SeeAlsoPlus;
 use strict;
 use base qw(Bugzilla::Extension);
 
+use Bugzilla::Install::Filesystem;
+
 use Bugzilla::Extension::SeeAlsoPlus::Util;
+use Bugzilla::Extension::SeeAlsoPlus::RemoteBugzilla;
 
 our $VERSION = '0.01';
 
@@ -21,6 +24,11 @@ sub config_add_panels {
             "Bugzilla::Extension::SeeAlsoPlus::Params";
 }
 
+sub install_filesystem {
+    my ($self, $args) = @_;
+    $args->{create_dirs}->{cache_base_dir()} =
+            Bugzilla::Install::Filesystem::DIR_CGI_WRITE;
+}
 
 sub template_before_process {
     my ($self, $args) = @_;

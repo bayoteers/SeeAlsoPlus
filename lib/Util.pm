@@ -20,15 +20,15 @@ Utility functions for SeeAlsoPlus extension.
 package Bugzilla::Extension::SeeAlsoPlus::Util;
 use strict;
 
-use Bugzilla::Extension::SeeAlsoPlus::RemoteBugzilla;
-
 use Bugzilla::BugUrl;
+use Bugzilla::Constants qw(bz_locations);
 use Bugzilla::Error;
 
 use Scalar::Util qw(blessed);
 
 use base qw(Exporter);
 our @EXPORT = qw(
+    cache_base_dir
     get_remote_object
 );
 
@@ -40,6 +40,18 @@ use constant REMOTE_CLASS => {
 =head2 Functions
 
 =over
+
+=item C<cache_base_dir()>
+
+Retruns:
+
+    The base dir for remote object data cache
+
+=cut
+
+sub cache_base_dir {
+    return bz_locations()->{'datadir'} . '/extensions/sap_cache/';
+}
 
 =item C<get_remote_object($url, $no_cache)>
 

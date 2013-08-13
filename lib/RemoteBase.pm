@@ -20,14 +20,14 @@ This is the base class presenting the additional info related to BugUrls.
 package Bugzilla::Extension::SeeAlsoPlus::RemoteBase;
 use strict;
 
-use Bugzilla::Extension::SeeAlsoPlus::RemoteBugzilla;
-
 use Bugzilla::BugUrl;
-use Bugzilla::Constants;
+use Bugzilla::Error;
 use Bugzilla::Util qw(trim);
 
 use File::Path qw(make_path);
 use Scalar::Util qw(blessed);
+
+use Bugzilla::Extension::SeeAlsoPlus::Util qw(cache_base_dir);
 
 sub new {
     my ($class, $url, $no_cache) = @_;
@@ -57,8 +57,7 @@ sub cache_dir {
         my @segments = $self->uri->path_segments;
         my $path = join('_', @segments[0..@segments-2]);
 
-        my $local_path = bz_locations()->{'datadir'} . '/extensions/sap_cache/' .
-            $self->uri->host . $path;
+        my $local_path = cache_base_dir() . $self->uri->host . $path;
         if (!-d $local_path) {
             make_path($local_path);
         }
