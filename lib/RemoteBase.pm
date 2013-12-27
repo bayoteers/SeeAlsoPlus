@@ -27,7 +27,11 @@ use Bugzilla::Util qw(trim);
 use File::Path qw(make_path);
 use Scalar::Util qw(blessed);
 
+use LWP::UserAgent;
+
 use Bugzilla::Extension::SeeAlsoPlus::Util qw(cache_base_dir);
+
+use constant REMOTE_TIMEOUT => 5;
 
 sub new {
     my ($class, $url, $no_cache) = @_;
@@ -105,6 +109,7 @@ sub data {
 
 sub needs_valid_cert {
     my ($self, $url) = @_;
+    $url ||= $self->uri->as_string;
     for my $regex (split(/\n/, Bugzilla->params->{sap_invalid_cert_urls} || ''))
     {
         next unless trim($regex);
@@ -113,6 +118,35 @@ sub needs_valid_cert {
     return 1;
 }
 
+sub fetch_file {
+    my ($self, $local_file) = @_;
+    my $ua = LWP::UserAgent->new();
+    if ($ua->can('ssl_opts')) {
+        $ua->ssl_opts(verify_hostname => $self->needs_valid_cert());
+    }
+    $ua->timeout(REMOTE_TIMEOUT);
+    $ua->protocols_allowed(['http', 'https']);
+
+    # If the URL of the proxy is given, use it, else get this information
+    # from the environment variable.
+    my $proxy_url = Bugzilla->params->{'proxy_url'};
+    if ($proxy_url) {
+        $ua->proxy(['http'], $proxy_url);
+        if (!$ENV{HTTPS_PROXY}) {
+            # LWP does not handle https over proxy, so by setting the env
+            # variables the proxy connection is handled by undelying library
+            my $pu = URI->new($proxy_url);
+            $ENV{HTTPS_PROXY} = $pu->scheme.'://'.$pu->host.':'.$pu->port;
+            my ($user, $pass) = split(':', $pu->userinfo || "");
+            $ENV{HTTPS_PROXY_USERNAME} = $user if defined $user;
+            $ENV{HTTPS_PROXY_PASSWORD} = $pass if defined $pass;
+        }
+    }
+    else {
+        $ua->env_proxy;
+    }
+    return eval { $ua->mirror($self->uri->as_string, $local_file) };
+}
 
 1;
 

@@ -16,9 +16,7 @@ use strict;
 use base qw(Bugzilla::Extension::SeeAlsoPlus::RemoteBase);
 
 use XML::Twig;
-use LWP::UserAgent;
 
-use constant REMOTE_TIMEOUT => 5;
 use constant UPDATE_INTERVAL => 86400;
 
 use constant FIELDS => qw(
@@ -66,36 +64,7 @@ sub data {
     return $self->{data};
 }
 
-sub _fetch_file {
-    my ($self, $local_file) = @_;
-    my $ua = LWP::UserAgent->new();
-    if ($ua->can('ssl_opts')) {
-        $ua->ssl_opts(verify_hostname =>
-            $self->needs_valid_cert($self->uri->as_string));
-    }
-    $ua->timeout(REMOTE_TIMEOUT);
-    $ua->protocols_allowed(['http', 'https']);
 
-    # If the URL of the proxy is given, use it, else get this information
-    # from the environment variable.
-    my $proxy_url = Bugzilla->params->{'proxy_url'};
-    if ($proxy_url) {
-        $ua->proxy(['http'], $proxy_url);
-        if (!$ENV{HTTPS_PROXY}) {
-            # LWP does not handle https over proxy, so by setting the env
-            # variables the proxy connection is handled by undelying library
-            my $pu = URI->new($proxy_url);
-            $ENV{HTTPS_PROXY} = $pu->scheme.'://'.$pu->host.':'.$pu->port;
-            my ($user, $pass) = split(':', $pu->userinfo || "");
-            $ENV{HTTPS_PROXY_USERNAME} = $user if defined $user;
-            $ENV{HTTPS_PROXY_PASSWORD} = $pass if defined $pass;
-        }
-    }
-    else {
-        $ua->env_proxy;
-    }
-    return eval { $ua->mirror($self->uri->as_string, $local_file) };
-}
 
 
 sub _parse_xml {
@@ -108,7 +77,7 @@ sub _parse_xml {
     if ($self->{no_cache} || !-e $local_file ||
             (time() - (stat($local_file))[9] > UPDATE_INTERVAL)) {
         $self->uri->query_form(id => $id, ctype => 'xml');
-        my $response = $self->_fetch_file($local_file);
+        my $response = $self->fetch_file($local_file);
         if (!-e $local_file || !$response || $response->is_error) {
             $self->error($response ? $response->status_line : 'Download failed');
             return;
