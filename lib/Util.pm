@@ -23,6 +23,7 @@ use strict;
 use Bugzilla::BugUrl;
 use Bugzilla::Constants qw(bz_locations);
 use Bugzilla::Error;
+use Bugzilla::Hook;
 
 use Scalar::Util qw(blessed);
 
@@ -32,9 +33,18 @@ our @EXPORT = qw(
     get_remote_object
 );
 
-use constant REMOTE_CLASS => {
-    'Bugzilla::BugUrl::Bugzilla' =>
-        'Bugzilla::Extension::SeeAlsoPlus::RemoteBugzilla',
+our $class_map;
+
+sub REMOTE_CLASS {
+    unless (defined $class_map) {
+        $class_map = {
+            'Bugzilla::BugUrl::Bugzilla' =>
+                'Bugzilla::Extension::SeeAlsoPlus::RemoteBugzilla',
+        };
+        Bugzilla::Hook::process("see_also_plus_classes",
+                { classes => $class_map });
+    }
+    return $class_map;
 };
 
 =head2 Functions
@@ -76,9 +86,12 @@ sub get_remote_object {
         $urlclass = Bugzilla::BugUrl->class_for($url);
     }
     if (defined $urlclass && defined REMOTE_CLASS->{$urlclass}) {
-        return REMOTE_CLASS->{$urlclass}->new($url, $no_cache);
+        my $remote_class = REMOTE_CLASS->{$urlclass};
+        eval "use $remote_class";
+        die $@ if $@;
+        return $remote_class->new($url, $no_cache);
     } else {
-        ThrowUserError('sap_remote_not_available', { url => $url })
+        ThrowUserError('sap_remote_not_available', { url => $url });
     }
 }
 1;
