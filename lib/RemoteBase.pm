@@ -119,7 +119,8 @@ sub needs_valid_cert {
 }
 
 sub fetch_file {
-    my ($self, $local_file) = @_;
+    my ($self, $local_file, $url) = @_;
+    $url ||= $self->uri->as_string;
     my $ua = LWP::UserAgent->new();
     if ($ua->can('ssl_opts')) {
         $ua->ssl_opts(verify_hostname => $self->needs_valid_cert());
@@ -145,7 +146,7 @@ sub fetch_file {
     else {
         $ua->env_proxy;
     }
-    return eval { $ua->mirror($self->uri->as_string, $local_file) };
+    return eval { $ua->mirror($url, $local_file) };
 }
 
 1;
