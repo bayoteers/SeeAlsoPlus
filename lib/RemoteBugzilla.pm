@@ -49,13 +49,7 @@ sub status {
 sub description {
     my $self = shift;
     $self->_parse_xml unless defined $self->{comments};
-    return $self->{comments}->[0];
-}
-
-sub comments {
-    my $self = shift;
-    $self->_parse_xml unless defined $self->{comments};
-    return $self->{comments};
+    return $self->{comments}->[0]->{text};
 }
 
 sub data {
@@ -64,8 +58,12 @@ sub data {
     return $self->{data};
 }
 
-
-
+# Bugzilla specific
+sub comments {
+    my $self = shift;
+    $self->_parse_xml unless defined $self->{comments};
+    return $self->{comments};
+}
 
 sub _parse_xml {
     my ($self) = @_;
