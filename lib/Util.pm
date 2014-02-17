@@ -40,6 +40,8 @@ sub REMOTE_CLASS {
         $class_map = {
             'Bugzilla::BugUrl::Bugzilla' =>
                 'Bugzilla::Extension::SeeAlsoPlus::RemoteBugzilla',
+            'Bugzilla::BugUrl::GitHub' =>
+                'Bugzilla::Extension::SeeAlsoPlus::RemoteGitHub',
         };
         Bugzilla::Hook::process("see_also_plus_classes",
                 { classes => $class_map });
