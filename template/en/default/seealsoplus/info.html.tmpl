@@ -1,0 +1,80 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # Copyright (C) 2014 Jolla Ltd.
+  # Contact: Pami Ketolainen <pami.ketolainen@jolla.com>
+  #%]
+
+[% IF item.type == 'RemoteBugzilla' %]
+  <table>
+    <tr>
+      <td colspan="2">
+        <a href="[% item.url FILTER html %]"
+          target="_blank">[% item.url FILTER html %]</a>
+        Last fetched: [% item.cache_dt FILTER time %]
+      </td>
+    </tr>
+    <tr>
+      <th>Status</th>
+      <td>[% item.status FILTER html %]</td>
+    </tr>
+    <tr>
+      <th>Reporter</th>
+      <td>[% item.data.reporter_real_name FILTER html %]</td>
+    </tr>
+    <tr>
+      <th>Assignee</th>
+      <td>[% item.data.assigned_to_real_name FILTER html %]</td>
+    </tr>
+    <tr>
+      <th>Last modified</th>
+      <td>[% item.data.delta_ts FILTER time %]</td>
+    </tr>
+  </table>
+  <hr>
+  <strong>Description</strong>
+  <pre>[% item.description FILTER wrap_comment FILTER html %]</pre>
+
+  [% FOREACH n IN [1 .. item.data.comments.max] %]
+    [% comment = item.data.comments.$n %]
+    <strong>Comment [% n FILTER none %]: </strong>
+    [% comment.author FILTER html +%] - [% comment.date FILTER html %]
+    <pre>[% comment.text FILTER wrap_comment FILTER html %]</pre>
+  [% END %]
+
+[% ELSIF item.type == 'RemoteGitHub' %]
+
+  <table>
+    <tr>
+      <td colspan="2">
+        <a href="[% item.url FILTER html %]"
+          target="_blank">[% item.url FILTER html %]</a>
+        Last fetched: [% item.cache_dt FILTER time %]
+      </td>
+    </tr>
+    <tr>
+      <th>Status</th>
+      <td>[% item.status FILTER html %]</td>
+    </tr>
+    <tr>
+      <th>Reporter</th>
+      <td>[% item.data.user.login FILTER html %]</td>
+    </tr>
+    [% IF item.data.assignee %]
+    <tr>
+      <th>Assignee</th>
+      <td>[% item.data.assignee.login FILTER html %]</td>
+    </tr>
+    [% END %]
+    <tr>
+      <th>Last modified</th>
+      <td>[% item.data.updated_at FILTER time %]</td>
+    </tr>
+  </table>
+  <hr>
+  <pre>[% item.description FILTER wrap_comment FILTER html %]</pre>
+
+[% ELSE %]
+  [% Hook.process('end') %]
+[% END %]

@@ -17,8 +17,6 @@ use base qw(Bugzilla::Extension::SeeAlsoPlus::RemoteBase);
 
 use XML::Twig;
 
-use constant UPDATE_INTERVAL => 86400;
-
 use constant FIELDS => qw(
     bug_id
     short_desc
@@ -32,24 +30,26 @@ use constant FIELDS => qw(
     bug_severity
 );
 
+sub id {
+    my $self = shift;
+    return $self->uri->query_param('id');
+}
+
 sub summary {
     my $self = shift;
-    $self->_parse_xml unless defined $self->{data};
-    return $self->{data}->{short_desc};
+    return $self->data->{short_desc};
 }
 
 sub status {
     my $self = shift;
-    $self->_parse_xml unless defined $self->{data};
-    my $status = $self->{data}->{bug_status} || "---";
-    my $resolution = $self->{data}->{resolution} || "---";
+    my $status = $self->data->{bug_status} || "---";
+    my $resolution = $self->data->{resolution} || "---";
     return "$status / $resolution";
 }
 
 sub description {
     my $self = shift;
-    $self->_parse_xml unless defined $self->{comments};
-    return $self->{comments}->[0]->{text};
+    return $self->data->{comments}->[0]->{text};
 }
 
 sub data {
@@ -58,28 +58,15 @@ sub data {
     return $self->{data};
 }
 
-# Bugzilla specific
-sub comments {
-    my $self = shift;
-    $self->_parse_xml unless defined $self->{comments};
-    return $self->{comments};
-}
-
 sub _parse_xml {
     my ($self) = @_;
 
     my $id = $self->uri->query_param('id');
+    my $local_file = $self->cache_file;
 
-    my $local_file = $self->cache_dir . $id . '.xml';
-
-    if ($self->{no_cache} || !-e $local_file ||
-            (time() - (stat($local_file))[9] > UPDATE_INTERVAL)) {
+    if ($self->{no_cache} || $self->cache_expired) {
         $self->uri->query_form(id => $id, ctype => 'xml');
-        my $response = $self->fetch_file($local_file);
-        if (!-e $local_file || !$response || $response->is_error) {
-            $self->error($response ? $response->status_line : 'Download failed');
-            return;
-        }
+        $self->fetch_file() or return;
         $self->{no_cache} = 0;
     }
     my $xml = XML::Twig->new()->safe_parsefile($local_file);
@@ -102,8 +89,6 @@ sub _parse_xml {
         $bug{$field} = $element->text;
         $bug{$field . '_real_name'} = $element->att('name');
     }
-    $self->{data} = \%bug;
-
     my @comments;
     for my $element ($bugxml->children('long_desc')) {
         push(@comments, {
@@ -112,7 +97,8 @@ sub _parse_xml {
             text => $element->first_child('thetext')->text,
         });
     }
-    $self->{comments} = \@comments;
+    $bug{comments} = \@comments;
+    $self->{data} = \%bug;
 }
 
 1;

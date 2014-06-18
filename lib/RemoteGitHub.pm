@@ -15,7 +15,20 @@ use base qw(Bugzilla::Extension::SeeAlsoPlus::RemoteBase);
 
 use JSON;
 
-use constant UPDATE_INTERVAL => 86400;
+sub _issue_info {
+    my $self = shift;
+    if (!defined $self->{_issue_info}) {
+        my $path = $self->uri->path;
+        my ($owner, $repo, $id) = $path =~ /\/(.+)\/(.+)\/issues\/(\d+)/;
+        $self->{_issue_info} = [$owner, $repo, $id];
+    }
+    return $self->{_issue_info};
+}
+
+sub id {
+    my $self = shift;
+    return $self->_issue_info->[2];
+}
 
 sub summary {
     my $self = shift;
@@ -42,19 +55,11 @@ sub data {
 sub _fetch_data {
     my ($self) = @_;
 
-    my $path = $self->uri->path;
-    my ($owner, $repo, $id) = $path =~ /\/(.+)\/(.+)\/issues\/(\d+)/;
+    my $url = "https://api.github.com/repos". $self->uri->path;
+    my $local_file = $self->cache_file;
 
-    my $local_file = $self->cache_dir ."$owner-$repo-$id.json";
-    my $url = "https://api.github.com/repos/$owner/$repo/issues/$id";
-
-    if ($self->{no_cache} || !-e $local_file ||
-            (time() - (stat($local_file))[9] > UPDATE_INTERVAL)) {
-        my $response = $self->fetch_file($local_file, $url);
-        if (!-e $local_file || !$response || $response->is_error) {
-            $self->error($response ? $response->status_line : 'Download failed');
-            return;
-        }
+    if ($self->{no_cache} || $self->cache_expired) {
+        $self->fetch_file($local_file, $url) or return;
         $self->{no_cache} = 0;
     }
     open(my $fh, '<', $local_file);

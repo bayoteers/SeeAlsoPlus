@@ -37,6 +37,7 @@ Params:
     url         - URL of the remote item
     no_cache    - IF true, force fetching the remote item, not using the cache
     raw         - If true, include "raw" item data in the response
+    html        - If true, includes extra info as html
 
 Returns: Hash presenting the remote item
 
@@ -52,23 +53,43 @@ Returns: Hash presenting the remote item
 
 sub get {
     my ($self, $params) = @_;
-    my $url = $params->{url};
+    my $urls = $params->{urls} || [$params->{url}];
     my $no_cache = $params->{no_cache} ? 1 : 0;
     my $raw = $params->{raw} ? 1 : 0;
+    my $html = $params->{html} ? 1 : 0;
 
-    my $item = get_remote_object($url, $no_cache);
-    my $result = {
-        url => $item->url,
-        summary => $item->summary,
-        description => $item->description,
-        status => $item->status,
-        type => $item->type,
-        error => $item->error,
-    };
-    if ($raw) {
-        $result->{data} = $item->data;
+    my @data;
+    for my $url (@$urls) {
+        my $item = get_remote_object($url, $no_cache, 1);
+        my $info;
+        if (defined $item) {
+            $info = {
+                url => $item->url,
+                summary => $item->summary,
+                description => $item->description,
+                status => $item->status,
+                type => $item->type,
+                error => $item->error,
+            };
+            if ($raw) {
+                $info->{data} = $item->data;
+            }
+            if ($html) {
+                $info->{html} = $item->html_info;
+            }
+        } else {
+            $info = {
+                url => $url,
+                error => "URL type not supported by SeeAlsoPlus"
+            }
+        }
+        push(@data, $info) if defined $info;
     }
-    return $result;
+    if ($params->{url}) {
+        return pop @data;
+    } else {
+        return {infos => \@data};
+    }
 }
 
 1;

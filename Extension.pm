@@ -39,7 +39,10 @@ sub template_before_process {
         {
             $vars->{javascript_urls} ||= [];
             push(@{$vars->{javascript_urls}},
-                "extensions/SeeAlsoPlus/web/js/seealsoplus.js");
+                "extensions/SeeAlsoPlus/web/seealsoplus.js");
+            $vars->{style_urls} ||= [];
+            push(@{$vars->{style_urls}},
+                "extensions/SeeAlsoPlus/web/styles.css");
         }
     }
 }

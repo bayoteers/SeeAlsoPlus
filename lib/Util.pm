@@ -80,7 +80,7 @@ Retruns:
 =cut
 
 sub get_remote_object {
-    my ($url, $no_cache) = @_;
+    my ($url, $no_cache, $no_error) = @_;
     my $urlclass;
     if (blessed($url) && $url->isa('Bugzilla::BugUrl')) {
         $urlclass = $url->class;
@@ -89,10 +89,15 @@ sub get_remote_object {
     }
     if (defined $urlclass && defined REMOTE_CLASS->{$urlclass}) {
         my $remote_class = REMOTE_CLASS->{$urlclass};
-        eval "use $remote_class";
-        die $@ if $@;
+        eval "require $remote_class";
+        if ($@) {
+            ThrowCodeError('sap_remote_handler_failed', { err => $@ });
+        }
         return $remote_class->new($url, $no_cache);
     } else {
+        if ($no_error) {
+            return;
+        }
         ThrowUserError('sap_remote_not_available', { url => $url });
     }
 }

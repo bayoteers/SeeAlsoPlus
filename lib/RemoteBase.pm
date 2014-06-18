@@ -32,6 +32,7 @@ use LWP::UserAgent;
 use Bugzilla::Extension::SeeAlsoPlus::Util qw(cache_base_dir);
 
 use constant REMOTE_TIMEOUT => 5;
+use constant UPDATE_INTERVAL => 86400;
 
 sub new {
     my ($class, $url, $no_cache) = @_;
@@ -70,6 +71,26 @@ sub cache_dir {
     return $self->{cache_dir};
 }
 
+sub cache_file {
+    my $self = shift;
+    return $self->cache_dir . $self->id . ".dat"
+}
+
+sub cache_timestamp {
+    my $self = shift;
+    return (stat($self->cache_file))[9] || 0;
+}
+
+sub cache_dt {
+    my $self = shift;
+    return DateTime->from_epoch(epoch => $self->cache_timestamp);
+}
+
+sub cache_expired {
+    my $self = shift;
+    return (time() - $self->cache_timestamp > $self->UPDATE_INTERVAL()) ? 1 : 0;
+}
+
 sub error {
     my ($self, $error) = @_;
     $self->{errors} ||= [];
@@ -81,33 +102,46 @@ sub error {
     }
 }
 
-# The generic accessors that subclasses should implement
-sub summary {
+sub html_info {
     my $self = shift;
+    if (!defined $self->{html_info}) {
+        my $template = Bugzilla->template;
+        my $result = "";
+        $template->process("seealsoplus/info.html.tmpl",
+            {item => $self}, \$result) || ($result = $template->error());
+        $self->{html_info} = trim($result);
+    }
+    return $self->{html_info};
+}
+
+# The generic accessors that subclasses should implement
+
+sub id {
     ThrowCodeError('unknown_method',
-        { method => ref($self) . '::summary' });
+        { method => ref($_[0]) . '::id' });
+}
+
+sub summary {
+    ThrowCodeError('unknown_method',
+        { method => ref($_[0]) . '::summary' });
 }
 
 sub status {
-    my $self = shift;
     ThrowCodeError('unknown_method',
-        { method => ref($self) . '::status' });
+        { method => ref($_[0]) . '::status' });
 }
 
 sub description {
-    my $self = shift;
     ThrowCodeError('unknown_method',
-        { method => ref($self) . '::description' });
+        { method => ref($_[0]) . '::description' });
 }
 
 sub data {
-    my $self = shift;
     ThrowCodeError('unknown_method',
-        { method => ref($self) . '::data' });
+        { method => ref($_[0]) . '::data' });
 }
 
-
-sub needs_valid_cert {
+sub _needs_valid_cert {
     my ($self, $url) = @_;
     $url ||= $self->uri->as_string;
     for my $regex (split(/\n/, Bugzilla->params->{sap_invalid_cert_urls} || ''))
@@ -121,9 +155,11 @@ sub needs_valid_cert {
 sub fetch_file {
     my ($self, $local_file, $url) = @_;
     $url ||= $self->uri->as_string;
+    $local_file ||= $self->cache_file;
+
     my $ua = LWP::UserAgent->new();
     if ($ua->can('ssl_opts')) {
-        $ua->ssl_opts(verify_hostname => $self->needs_valid_cert());
+        $ua->ssl_opts(verify_hostname => $self->_needs_valid_cert());
     }
     $ua->timeout(REMOTE_TIMEOUT);
     $ua->protocols_allowed(['http', 'https']);
@@ -146,7 +182,12 @@ sub fetch_file {
     else {
         $ua->env_proxy;
     }
-    return eval { $ua->mirror($url, $local_file) };
+    my $response = eval { $ua->mirror($url, $local_file) };
+    if (!-e $local_file || !$response || $response->is_error) {
+        $self->error($response ? $response->status_line : 'Download failed');
+        return 0;
+    }
+    return 1;
 }
 
 1;
