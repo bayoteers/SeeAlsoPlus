@@ -32,7 +32,6 @@ use LWP::UserAgent;
 use Bugzilla::Extension::SeeAlsoPlus::Util qw(cache_base_dir);
 
 use constant REMOTE_TIMEOUT => 5;
-use constant UPDATE_INTERVAL => 86400;
 
 sub new {
     my ($class, $url, $no_cache) = @_;
@@ -88,7 +87,7 @@ sub cache_dt {
 
 sub cache_expired {
     my $self = shift;
-    return (time() - $self->cache_timestamp > $self->UPDATE_INTERVAL()) ? 1 : 0;
+    return (time() - $self->cache_timestamp > Bugzilla->params->{sap_cache_timeout}) ? 1 : 0;
 }
 
 sub error {
