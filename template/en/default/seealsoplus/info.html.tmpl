@@ -6,6 +6,24 @@
   # Contact: Pami Ketolainen <pami.ketolainen@jolla.com>
   #%]
 
+
+[% BLOCK bz_comment %]
+<div class="bz_comment">
+    <div class="bz_comment_head">
+      <span class="bz_comment_number">[% n == 0 ? 'Description' : 'Comment ' _ n %]</span>
+      <span class="bz_comment_user">
+        <span class="vcard">
+          <span class="fn">[% comment.author FILTER html +%]</span>
+        </span>
+      </span>
+      <span class="bz_comment_time">
+        [% comment.date FILTER html %]
+      </span>
+    </div>
+    <pre class="bz_comment_text">[% comment.text FILTER wrap_comment FILTER html %]</pre>
+  </div>
+[% END %]
+
 [% IF item.type == 'RemoteBugzilla' %]
   <table>
     <tr>
@@ -33,14 +51,10 @@
     </tr>
   </table>
   <hr>
-  <strong>Description</strong>
-  <pre>[% item.description FILTER wrap_comment FILTER html %]</pre>
 
+  [% PROCESS bz_comment comment = item.data.comments.0, n = 0 %]
   [% FOREACH n IN [1 .. item.data.comments.max] %]
-    [% comment = item.data.comments.$n %]
-    <strong>Comment [% n FILTER none %]: </strong>
-    [% comment.author FILTER html +%] - [% comment.date FILTER html %]
-    <pre>[% comment.text FILTER wrap_comment FILTER html %]</pre>
+    [% PROCESS bz_comment comment = item.data.comments.$n %]
   [% END %]
 
 [% ELSIF item.type == 'RemoteGitHub' %]

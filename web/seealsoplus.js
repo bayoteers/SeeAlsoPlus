@@ -57,6 +57,7 @@ function enhanceSeeAlso(result)
                             minWidth: 700,
                             height: 500
                         })
+                        .css('background-color', $('body').css('background-color'));
                     }
                 });
             link.before(extraBtn);
