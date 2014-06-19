@@ -17,13 +17,15 @@
         </span>
       </span>
       <span class="bz_comment_time">
-        [% comment.date FILTER html %]
+        [% comment.date FILTER time %]
       </span>
     </div>
     <pre class="bz_comment_text">[% comment.text FILTER wrap_comment FILTER html %]</pre>
   </div>
 [% END %]
 
+
+<div class="sap-info-box" title="[% item.title || item.summary FILTER html %]">
 [% IF item.type == 'RemoteBugzilla' %]
   <table>
     <tr>
@@ -33,6 +35,12 @@
         Last fetched: [% item.cache_dt FILTER time %]
       </td>
     </tr>
+    [% IF item.title != item.summary %]
+    <tr>
+      <th>Summary</th>
+      <td>[% item.summary FILTER html %]</td>
+    </tr>
+    [% END %]
     <tr>
       <th>Status</th>
       <td>[% item.status FILTER html %]</td>
@@ -67,6 +75,12 @@
         Last fetched: [% item.cache_dt FILTER time %]
       </td>
     </tr>
+    [% IF item.title != item.summary %]
+    <tr>
+      <th>Summary</th>
+      <td>[% item.summary FILTER html %]</td>
+    </tr>
+    [% END %]
     <tr>
       <th>Status</th>
       <td>[% item.status FILTER html %]</td>
@@ -92,3 +106,4 @@
 [% ELSE %]
   [% Hook.process('end') %]
 [% END %]
+</div>

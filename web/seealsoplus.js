@@ -23,7 +23,9 @@ function enhanceSeeAlso(result)
             link.attr('title', "Fetching remote data failed: " + info.error);
             return;
         }
-        if (info.summary) {
+        if (info.title) {
+            link.text(info.title);
+        } else {
             link.text(info.summary);
         }
         link.attr('title', info.status);
@@ -46,12 +48,9 @@ function enhanceSeeAlso(result)
                     if (info._infoBox) {
                         info._infoBox.dialog('open');
                     } else {
-                        var infoBox = $("<div>")
-                            .addClass("sap-info-box")
-                            .html(info.html);
+                        var infoBox = $(info.html);
                         info['_infoBox'] = infoBox;
                         infoBox.dialog({
-                            title: info.summary,
                             position: 'right',
                             width: $("#bz_show_bug_column_2").width(),
                             minWidth: 700,

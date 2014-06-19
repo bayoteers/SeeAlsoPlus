@@ -7,6 +7,10 @@
  * Contact: Pami Ketolainen <pami.ketolainen@jolla.com>
  */
 
+div.sap-info-box {
+	font-size: small;
+}
+
 div.sap-info-box th {
 	text-align: right;
 	width: 10em;

@@ -37,25 +37,31 @@ sub id {
 
 sub summary {
     my $self = shift;
-    return $self->data->{short_desc};
+    return defined $self->data->{short_desc} ?
+        $self->data->{short_desc} : "";
 }
 
 sub status {
     my $self = shift;
-    my $status = $self->data->{bug_status} || "---";
-    my $resolution = $self->data->{resolution} || "---";
-    return "$status / $resolution";
+    if (defined $self->data->{bug_status}) {
+        my $status = $self->data->{bug_status} || "---";
+        my $resolution = $self->data->{resolution} || "---";
+        return "$status / $resolution";
+    }
+    return "";
 }
 
 sub description {
     my $self = shift;
-    return $self->data->{comments}->[0]->{text};
+    return defined $self->data->{comments} ?
+        $self->data->{comments}->[0]->{text} :
+        "";
 }
 
 sub data {
     my $self = shift;
     $self->_parse_xml unless defined $self->{data};
-    return $self->{data};
+    return $self->{data} || {};
 }
 
 sub _parse_xml {

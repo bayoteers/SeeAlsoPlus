@@ -65,6 +65,7 @@ sub get {
         if (defined $item) {
             $info = {
                 url => $item->url,
+                title => $item->title,
                 summary => $item->summary,
                 description => $item->description,
                 status => $item->status,

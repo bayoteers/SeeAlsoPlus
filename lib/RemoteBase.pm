@@ -22,6 +22,7 @@ use strict;
 
 use Bugzilla::BugUrl;
 use Bugzilla::Error;
+use Bugzilla::Hook;
 use Bugzilla::Util qw(trim);
 
 use File::Path qw(make_path);
@@ -111,6 +112,17 @@ sub html_info {
         $self->{html_info} = trim($result);
     }
     return $self->{html_info};
+}
+
+sub title {
+    my $self = shift;
+    if (!defined $self->{title}) {
+        my $title = $self->summary;
+        Bugzilla::Hook::process("see_also_plus_format_title",
+                { item => $self,  title => \$title });
+        $self->{title} = $title;
+    }
+    return $self->{title};
 }
 
 # The generic accessors that subclasses should implement
