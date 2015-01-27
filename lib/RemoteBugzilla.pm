@@ -67,6 +67,8 @@ sub data {
 sub _parse_xml {
     my ($self) = @_;
 
+    return if $self->error;
+
     my $id = $self->uri->query_param('id');
     my $local_file = $self->cache_file;
 

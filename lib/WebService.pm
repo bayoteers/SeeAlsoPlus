@@ -63,20 +63,27 @@ sub get {
         my $item = get_remote_object($url, $no_cache, 1);
         my $info;
         if (defined $item) {
-            $info = {
-                url => $item->url,
-                title => $item->title,
-                summary => $item->summary,
-                description => $item->description,
-                status => $item->status,
-                type => $item->type,
-                error => $item->error,
-            };
-            if ($raw) {
-                $info->{data} = $item->data;
-            }
-            if ($html) {
-                $info->{html} = $item->html_info;
+            if ($item->error) {
+                $info = {
+                    url => $url,
+                    error => $item->error
+                };
+            } else {
+                $info = {
+                    url => $item->url,
+                    title => $item->title,
+                    summary => $item->summary,
+                    description => $item->description,
+                    status => $item->status,
+                    type => $item->type,
+                    error => $item->error,
+                };
+                if ($raw) {
+                    $info->{data} = $item->data;
+                }
+                if ($html) {
+                    $info->{html} = $item->html_info;
+                }
             }
         } else {
             $info = {

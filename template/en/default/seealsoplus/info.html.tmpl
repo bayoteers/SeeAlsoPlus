@@ -61,8 +61,10 @@
   <hr>
 
   [% PROCESS bz_comment comment = item.data.comments.0, n = 0 %]
-  [% FOREACH n IN [1 .. item.data.comments.max] %]
-    [% PROCESS bz_comment comment = item.data.comments.$n %]
+  [% IF item.data.comments.max >= 1 %]
+    [% FOREACH n IN [1 .. item.data.comments.max] %]
+      [% PROCESS bz_comment comment = item.data.comments.$n %]
+    [% END %]
   [% END %]
 
 [% ELSIF item.type == 'RemoteGitHub' %]

@@ -104,6 +104,7 @@ sub error {
 
 sub html_info {
     my $self = shift;
+    return "" if $self->error;
     if (!defined $self->{html_info}) {
         my $template = Bugzilla->template;
         my $result = "";
