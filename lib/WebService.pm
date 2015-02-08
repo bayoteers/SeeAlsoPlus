@@ -26,6 +26,10 @@ use Bugzilla::Error;
 
 use base qw(Bugzilla::WebService);
 
+use constant PUBLIC_METHODS => qw(
+    get
+);
+
 =head1 METHODS
 
 =over
